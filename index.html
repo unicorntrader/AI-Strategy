@@ -265,45 +265,29 @@
         }
 
         function calculateAndShowResults() {
-            const score = calculateScore();
-            let riskLevel, riskClass, description;
-
-            if (score >= 75) {
-                riskLevel = "AI Ready";
-                riskClass = "risk-low";
-                description = "Your business is well-positioned for the AI transformation with strong foundations and readiness.";
-            } else if (score >= 50) {
-                riskLevel = "Moderate Risk";
-                riskClass = "risk-medium";
-                description = "Your business has some AI preparation but needs focused strategic development to stay competitive.";
-            } else {
-                riskLevel = "High Risk";
-                riskClass = "risk-high";
-                description = "Your business faces significant disruption risk and needs immediate AI strategy development.";
-            }
-
             document.getElementById('assessment-form').style.display = 'none';
             const resultsSection = document.getElementById('results-section');
             resultsSection.className = 'results fade-in';
             
             resultsSection.innerHTML = `
-                <h2 style="font-size: 2rem; margin-bottom: 20px; color: #1e293b;">Your AI Strategy Assessment Results</h2>
+                <h2 style="font-size: 2rem; margin-bottom: 20px; color: #1e293b;">Your AI Strategy Profile</h2>
                 
-                <div class="score-display">${score}</div>
-                <div style="font-size: 1.2rem; color: #64748b; margin-bottom: 10px;">Overall AI Readiness Score</div>
-                <div class="risk-level ${riskClass}">${riskLevel}</div>
-                <p style="font-size: 1.1rem; color: #374151; margin: 20px 0;">${description}</p>
+                <p style="font-size: 1.2rem; color: #374151; margin: 30px 0; line-height: 1.6;">
+                    Based on your responses, we've created a comprehensive strategic prompt that captures your business context, challenges, and AI readiness. Copy this prompt and paste it into ChatGPT, Claude, or any AI assistant to get personalized strategic recommendations.
+                </p>
 
                 <div class="profile-summary">
-                    <h3 style="margin-bottom: 15px; color: #1e293b;">Your Business Profile</h3>
+                    <h3 style="margin-bottom: 15px; color: #1e293b;">Your Business Profile Summary</h3>
                     <div class="profile-item"><strong>Business Model:</strong> ${state.quadrant || 'Not specified'}</div>
                     <div class="profile-item"><strong>Competitive Advantages:</strong> ${state.advantage.length ? state.advantage.join(', ') : 'None selected'}</div>
                     <div class="profile-item"><strong>Biggest Cost:</strong> ${state.biggestCost || 'Not specified'}</div>
                     <div class="profile-item"><strong>AI Leverage Opportunities:</strong> ${state.leverage.length ? state.leverage.join(', ') : 'None selected'}</div>
+                    <div class="profile-item"><strong>Change Adaptation:</strong> ${state.changeSpeed <= 30 ? 'Slow to change' : state.changeSpeed <= 70 ? 'Moderate adaptation' : 'Fast to adapt'}</div>
+                    <div class="profile-item"><strong>AI Integration:</strong> ${((1.0 + (state.generationalDisruption / 100) * 2.0) < 1.5) ? 'No AI integration' : ((1.0 + (state.generationalDisruption / 100) * 2.0) < 2.5) ? 'Some AI tools' : 'AI-native approach'}</div>
                 </div>
 
                 <button class="btn success" onclick="copyDetailedPrompt()">
-                    📋 Copy Detailed Analysis Prompt for AI Assistant
+                    📋 Copy Strategic Analysis Prompt
                 </button>
                 
                 <div style="margin-top: 20px;">
@@ -315,7 +299,6 @@
         }
 
         function copyDetailedPrompt() {
-            const score = calculateScore();
             const aiReadiness = (1.0 + (state.generationalDisruption / 100) * 2.0).toFixed(1);
             
             // Helper function to interpret scores
@@ -339,80 +322,79 @@
                 return "AI Native - built with AI at the core";
             }
 
-            const prompt = `I just completed a comprehensive AI Strategy Assessment for my business. Here are my detailed results with full context:
+            const prompt = `I need strategic guidance for my business regarding AI transformation. I've completed a detailed assessment of my current situation:
 
-OVERALL AI READINESS SCORE: ${score}/100
+MY BUSINESS CONTEXT:
 
-DETAILED ASSESSMENT BREAKDOWN:
+**Change & Adaptation Capability:**
+My business adapts to change at a ${interpretScore(state.changeSpeed)} rate (${state.changeSpeed}/100 scale)
+Context: This measures how quickly we respond to market shifts, new technologies, and industry changes
+Scale meaning: 0 = Very slow to change → 100 = Very fast to adapt
 
-1. **Change Adaptation Speed: ${state.changeSpeed}/100** 
-   This measures how quickly my business adapts to market changes, new technologies, and industry shifts.
-   My score indicates: ${interpretScore(state.changeSpeed)} ability to adapt to change
-   Scale: 0 = Very slow to change → 100 = Very fast to adapt
+**Business Model Sophistication:**
+My business operates with ${interpretScore(state.businessType)} model sophistication (${state.businessType}/100 scale)
+Context: This evaluates whether we're a simple trade/service or a complex scalable business
+Scale meaning: 0 = Simple trade/service → 100 = Complex scalable business model
 
-2. **Business Model Maturity: ${state.businessType}/100**
-   This evaluates whether my business operates more like a traditional trade/service or a scalable business model.
-   My score indicates: ${interpretScore(state.businessType)} business model sophistication
-   Scale: 0 = Simple trade/service model → 100 = Complex scalable business model
+**AI Impact Expectations:**
+I expect ${interpretScore(state.aiImpact)} impact from AI on my business (${state.aiImpact}/100 scale)
+Context: This reflects whether I see AI as primarily a threat or opportunity
+Scale meaning: 0 = Very negative AI impact → 100 = Very positive AI opportunity
 
-3. **AI Impact Perception: ${state.aiImpact}/100**
-   This reflects how I believe AI will affect my business - whether it's a threat or opportunity.
-   My score indicates: ${interpretScore(state.aiImpact)} expected impact from AI
-   Scale: 0 = Very negative AI impact → 100 = Very positive AI impact
+**Current AI Integration:**
+My business is at level ${aiReadiness}/3.0: ${interpretAIReadiness(parseFloat(aiReadiness))}
+Context: This measures our current relationship with AI technology
+Scale meaning: 1.0 = No AI → 2.0 = Some AI tools → 3.0 = AI-native business
 
-4. **Current AI Integration Level: ${aiReadiness}/3.0**
-   This measures my business's current relationship with AI technology.
-   My level: ${interpretAIReadiness(parseFloat(aiReadiness))}
-   Scale: 1.0 = AI Nothing → 2.0 = AI Enhanced → 3.0 = AI Native
+**Value Creation Impact:**
+AI has ${interpretScore(state.aiValueChange, true)} impact on how we create value (${state.aiValueChange}/100 scale)
+Context: Whether AI changes our core business model or just optimizes processes
+Scale meaning: 0 = AI fundamentally changes our value creation → 100 = AI doesn't change core value
 
-5. **AI Value Engine Impact: ${state.aiValueChange}/100**
-   This assesses whether AI fundamentally changes how my business creates value or just optimizes existing processes.
-   My score indicates: AI ${interpretScore(state.aiValueChange, true)} changes to core value creation
-   Scale: 0 = AI fundamentally changes value creation → 100 = AI doesn't change core value
+**Customer Interaction Level:**
+We have ${interpretScore(state.customerFacing)} levels of customer interaction (${state.customerFacing}/100 scale)
+Context: How directly we interact with end customers vs. backend operations
+Scale meaning: 0 = B2B backend operations → 100 = Direct consumer-facing
 
-6. **Customer Interaction Level: ${state.customerFacing}/100**
-   This measures how directly my business interacts with end customers.
-   My score indicates: ${interpretScore(state.customerFacing)} customer interaction
-   Scale: 0 = B2B backend operations → 100 = Direct consumer-facing business
+BUSINESS PROFILE DETAILS:
 
-BUSINESS MODEL & COMPETITIVE PROFILE:
+**Business Model Type:** ${state.quadrant || 'Not clearly defined'}
+${state.quadrant === 'Platform' ? '→ Multi-sided marketplace connecting different user groups' : ''}
+${state.quadrant === 'Tool' ? '→ Software/service that helps others do their job better' : ''}
+${state.quadrant === 'Trade' ? '→ Direct service provision or physical goods business' : ''}
+${state.quadrant === 'Business' ? '→ Complex value creation with multiple revenue streams' : ''}
 
-• **Business Model Type**: ${state.quadrant || 'Not specified'}
-  ${state.quadrant === 'Platform' ? '(Multi-sided marketplace connecting users/providers)' : ''}
-  ${state.quadrant === 'Tool' ? '(Software/service that helps others do their job better)' : ''}
-  ${state.quadrant === 'Trade' ? '(Direct service provision or physical goods)' : ''}
-  ${state.quadrant === 'Business' ? '(Complex value creation with multiple revenue streams)' : ''}
+**Primary Competitive Advantages:** ${state.advantage.length ? state.advantage.join(', ') : 'None clearly identified - this is a strategic blind spot'}
 
-• **Primary Competitive Advantages**: ${state.advantage.length ? state.advantage.join(', ') : 'None specified - this is a significant strategic gap'}
+**Biggest Operational Cost:** ${state.biggestCost || 'Not specified'}
+${state.biggestCost === 'Staff salaries' ? '→ Labor-intensive operations' : ''}
+${state.biggestCost === 'Technology/Software' ? '→ Tech-dependent business model' : ''}
+${state.biggestCost === 'Marketing/Sales' ? '→ Customer acquisition focused' : ''}
+${state.biggestCost === 'Physical infrastructure' ? '→ Asset-heavy business model' : ''}
 
-• **Biggest Operational Cost**: ${state.biggestCost || 'Not specified'}
-  ${state.biggestCost === 'Staff salaries' ? '(Labor-intensive business model)' : ''}
-  ${state.biggestCost === 'Technology/Software' ? '(Tech-dependent operations)' : ''}
-  ${state.biggestCost === 'Marketing/Sales' ? '(Customer acquisition focused)' : ''}
-  ${state.biggestCost === 'Physical infrastructure' ? '(Asset-heavy business model)' : ''}
+**Identified AI Leverage Opportunities:** ${state.leverage.length ? state.leverage.join(', ') : 'None identified - significant untapped potential'}
 
-• **AI Leverage Opportunities**: ${state.leverage.length ? state.leverage.join(', ') : 'None identified - missed optimization potential'}
+STRATEGIC QUESTIONS I NEED HELP WITH:
 
-STRATEGIC CONTEXT:
-My business is ${score >= 75 ? 'well-positioned for AI transformation' : score >= 50 ? 'moderately prepared but needs focused AI strategy' : 'at high risk of AI disruption and needs immediate action'}. 
+1. **Competitive Positioning Analysis:** 
+   Given my ${interpretScore(state.changeSpeed)} change adaptation speed and ${interpretAIReadiness(parseFloat(aiReadiness))} current AI maturity, how should I position myself competitively as AI transforms my industry? What specific competitive threats should I be most concerned about?
 
-The combination of my ${interpretScore(state.changeSpeed)} change adaptation speed and ${interpretAIReadiness(parseFloat(aiReadiness))} current AI integration suggests ${state.changeSpeed < 50 && parseFloat(aiReadiness) < 2.0 ? 'significant urgency in developing AI capabilities' : state.changeSpeed >= 75 && parseFloat(aiReadiness) >= 2.0 ? 'strong foundation for advanced AI implementation' : 'moderate readiness with specific areas needing attention'}.
+2. **AI Implementation Roadmap:**
+   Considering my ${state.quadrant || 'undefined'} business model and the fact that AI ${interpretScore(state.aiValueChange, true)} changes my core value creation, what should my 6-month and 18-month AI implementation priorities be?
 
-Based on this comprehensive assessment, please provide:
+3. **Investment Strategy:**
+   With ${state.biggestCost || 'unspecified costs'} as my largest expense and potential to ${state.leverage.length ? state.leverage.join(' and ') : 'leverage AI in unclear ways'}, where should I invest my limited resources for maximum strategic impact?
 
-1. **Strategic Analysis**: Given my specific score patterns, what are my biggest AI-related risks and opportunities? How do my change adaptation speed (${state.changeSpeed}/100) and current AI integration (${aiReadiness}/3.0) create specific strategic implications?
+4. **Value Protection vs. Transformation:**
+   How do I balance protecting my current competitive advantages (${state.advantage.length ? state.advantage.join(', ') : 'which I haven\'t clearly identified'}) while embracing necessary AI transformation?
 
-2. **Prioritized Action Plan**: Considering my ${state.quadrant || 'unspecified'} business model and ${state.biggestCost || 'unknown'} as my biggest cost, what should be my top 3-5 priorities for the next 6 months?
+5. **Execution Strategy:**
+   Given my ${interpretScore(state.changeSpeed)} ability to adapt to change, how should I structure my AI transformation to match my organization's change capacity? Should I go fast or slow?
 
-3. **AI Implementation Strategy**: Which specific AI tools, platforms, or approaches best match my business profile? How should my ${interpretScore(state.customerFacing)} customer interaction level influence my AI implementation?
+6. **Market Positioning:**
+   How should my ${interpretScore(state.customerFacing)} level of customer interaction influence my AI strategy? Should I lead with customer-facing AI or internal efficiency AI?
 
-4. **Risk Mitigation**: Given that AI ${interpretScore(state.aiValueChange, true)} changes my core value creation, how do I protect what makes my business valuable while embracing transformation?
-
-5. **Investment Priorities**: With ${state.biggestCost || 'unspecified costs'} as my largest expense and potential to ${state.leverage.length ? state.leverage.join(' and ') : 'leverage AI in unidentified ways'}, where should I focus AI investments for maximum ROI?
-
-6. **Competitive Positioning**: How do I strengthen my competitive advantages (currently: ${state.advantage.length ? state.advantage.join(', ') : 'none clearly defined'}) in an AI-transformed market?
-
-Please provide specific, actionable recommendations that directly address my assessment scores and business context.`;
+Please provide specific, actionable strategic recommendations that help me think through these challenges systematically. I'm looking for strategic frameworks and concrete next steps, not just general AI advice.`;
 
             navigator.clipboard.writeText(prompt).then(() => {
                 alert('✅ Detailed analysis prompt copied to clipboard!\n\nYou can now paste this into ChatGPT, Claude, or any AI assistant for personalized strategic guidance.');
