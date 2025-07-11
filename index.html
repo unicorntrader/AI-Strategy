@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Strategy Assessment</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f8fafc; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { color: #1e293b; font-size: 2.5rem; margin-bottom: 10px; }
+        .header p { color: #64748b; font-size: 1.1rem; }
+        
+        .question-card { background: white; border-radius: 12px; padding: 30px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .question-title { font-size: 1.2rem; font-weight: 600; color: #1e293b; margin-bottom: 20px; }
+        
+        .slider-container { margin: 20px 0; }
+        .slider { width: 100%; height: 8px; border-radius: 5px; background: #e2e8f0; outline: none; }
+        .slider::-webkit-slider-thumb { appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #3b82f6; cursor: pointer; }
+        .slider::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: #3b82f6; cursor: pointer; border: none; }
+        
+        .slider-labels { display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.9rem; color: #64748b; }
+        .slider-value { text-align: center; margin-top: 15px; font-size: 1.3rem; font-weight: 600; color: #3b82f6; }
+        
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .option-item { padding: 15px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .option-item:hover { border-color: #3b82f6; background: #f1f5f9; }
+        .option-item.selected { border-color: #3b82f6; background: #dbeafe; color: #1e40af; }
+        
+        .checkbox-container { display: flex; flex-direction: column; gap: 10px; }
+        .checkbox-item { display: flex; align-items: center; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .checkbox-item:hover { background: #f8fafc; }
+        .checkbox-item.selected { border-color: #3b82f6; background: #dbeafe; }
+        .checkbox-item input { margin-right: 12px; }
+        
+        .btn { display: inline-block; padding: 15px 30px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; width: 100%; }
+        .btn:hover { background: #2563eb; transform: translateY(-2px); }
+        .btn.success { background: #059669; }
+        .btn.success:hover { background: #047857; }
+        
+        .results { background: white; border-radius: 12px; padding: 40px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .score-display { font-size: 4rem; font-weight: 800; color: #3b82f6; margin: 20px 0; }
+        .risk-level { font-size: 1.5rem; font-weight: 600; margin: 15px 0; }
+        .risk-high { color: #dc2626; }
+        .risk-medium { color: #d97706; }
+        .risk-low { color: #059669; }
+        
+        .profile-summary { background: #f8fafc; padding: 20px; border-radius: 8px; margin: 30px 0; text-align: left; }
+        .profile-item { margin: 8px 0; }
+        .profile-item strong { color: #1e293b; }
+        
+        .hidden { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI Strategy Assessment</h1>
+            <p>Evaluate your business's AI readiness and get strategic recommendations</p>
+        </div>
+
+        <div id="assessment-form">
+            <!-- Questions will be inserted here -->
+        </div>
+
+        <div id="results-section" class="hidden">
+            <!-- Results will be shown here -->
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            changeSpeed: 50,
+            businessType: 50,
+            aiImpact: 50,
+            generationalDisruption: 50,
+            aiValueChange: 50,
+            customerFacing: 50,
+            quadrant: '',
+            advantage: [],
+            leverage: [],
+            biggestCost: ''
+        };
+
+        const questions = [
+            {
+                id: 'changeSpeed',
+                title: 'Where is your business on the "Change" scale?',
+                type: 'slider',
+                labels: ['Very Slow to Change', 'Very Fast to Change']
+            },
+            {
+                id: 'businessType',
+                title: 'Is your business a "trade" or an actual business?',
+                type: 'slider',
+                labels: ['Trade/Service', 'Full Business']
+            },
+            {
+                id: 'aiImpact',
+                title: 'What effect will AI have on your business?',
+                type: 'slider',
+                labels: ['Very Negative Impact', 'Very Positive Impact']
+            },
+            {
+                id: 'generationalDisruption',
+                title: 'What is your current AI integration level?',
+                type: 'slider',
+                labels: ['1.0 (No AI)', '3.0 (AI Native)']
+            },
+            {
+                id: 'aiValueChange',
+                title: 'Does AI change your core value proposition?',
+                type: 'slider',
+                labels: ['Fundamentally Changes', 'Stays the Same']
+            },
+            {
+                id: 'customerFacing',
+                title: 'How customer-facing is your business?',
+                type: 'slider',
+                labels: ['B2B Backend', 'Direct Consumer']
+            },
+            {
+                id: 'quadrant',
+                title: 'What type of business model describes your company?',
+                type: 'select',
+                options: ['Platform', 'Tool', 'Trade', 'Business']
+            },
+            {
+                id: 'advantage',
+                title: 'What are your primary competitive advantages? (Select up to 2)',
+                type: 'checkbox',
+                options: ['Specialized expertise', 'Technology edge', 'Scale efficiency', 'Unique assets/IP', 'Customer relationships', 'Market position', 'Brand reputation', 'Cost leadership', 'Innovation capability'],
+                max: 2
+            },
+            {
+                id: 'leverage',
+                title: 'How can AI leverage your business?',
+                type: 'checkbox',
+                options: ['Reduce staff needs', 'Automate processes', 'Enhance marketing', 'Improve customer service', 'Speed decision-making', 'Generate insights', 'None of the above']
+            },
+            {
+                id: 'biggestCost',
+                title: 'What is your biggest operational cost?',
+                type: 'select',
+                options: ['Staff salaries', 'Technology/Software', 'Marketing/Sales', 'Physical infrastructure', 'Compliance/Legal', 'Raw materials', 'Other']
+            }
+        ];
+
+        function renderQuestions() {
+            const container = document.getElementById('assessment-form');
+            
+            questions.forEach(q => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-card fade-in';
+                questionDiv.innerHTML = createQuestionHTML(q);
+                container.appendChild(questionDiv);
+            });
+
+            // Add submit button
+            const submitDiv = document.createElement('div');
+            submitDiv.className = 'question-card fade-in';
+            submitDiv.innerHTML = '<button class="btn" onclick="calculateAndShowResults()">Get My AI Strategy Results</button>';
+            container.appendChild(submitDiv);
+        }
+
+        function createQuestionHTML(q) {
+            let html = `<div class="question-title">${q.title}</div>`;
+
+            if (q.type === 'slider') {
+                html += `
+                    <div class="slider-container">
+                        <input type="range" 
+                               id="${q.id}" 
+                               class="slider" 
+                               min="0" 
+                               max="100" 
+                               value="${state[q.id]}"
+                               oninput="updateSlider('${q.id}', this.value)">
+                        <div class="slider-labels">
+                            <span>${q.labels[0]}</span>
+                            <span>${q.labels[1]}</span>
+                        </div>
+                        <div class="slider-value" id="${q.id}-value">${state[q.id]}</div>
+                    </div>
+                `;
+            } else if (q.type === 'select') {
+                html += `
+                    <div class="options-grid">
+                        ${q.options.map(option => `
+                            <div class="option-item" onclick="selectOption('${q.id}', '${option}')">
+                                ${option}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (q.type === 'checkbox') {
+                html += `
+                    <div class="checkbox-container">
+                        ${q.options.map(option => `
+                            <div class="checkbox-item" onclick="toggleCheckbox('${q.id}', '${option}', ${q.max || 999})">
+                                <input type="checkbox" id="${q.id}-${option}">
+                                <span>${option}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            return html;
+        }
+
+        function updateSlider(id, value) {
+            state[id] = parseInt(value);
+            document.getElementById(id + '-value').textContent = value;
+        }
+
+        function selectOption(id, value) {
+            state[id] = value;
+            // Update visual selection
+            const parent = event.target.parentElement;
+            parent.querySelectorAll('.option-item').forEach(item => item.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        function toggleCheckbox(id, value, max) {
+            if (!Array.isArray(state[id])) state[id] = [];
+            
+            const checkbox = document.getElementById(`${id}-${value}`);
+            const item = event.target.closest('.checkbox-item');
+            
+            if (state[id].includes(value)) {
+                state[id] = state[id].filter(v => v !== value);
+                checkbox.checked = false;
+                item.classList.remove('selected');
+            } else if (state[id].length < max) {
+                state[id].push(value);
+                checkbox.checked = true;
+                item.classList.add('selected');
+            } else {
+                alert(`You can only select up to ${max} options.`);
+            }
+        }
+
+        function calculateScore() {
+            const scores = {
+                change: state.changeSpeed,
+                business: state.businessType,
+                aiImpact: state.aiImpact,
+                aiReadiness: ((state.generationalDisruption / 100) * 2 + 1) * 33.33,
+                aiValue: state.aiValueChange,
+                customer: state.customerFacing
+            };
+
+            return Math.round(
+                (scores.change * 0.15) + 
+                (scores.business * 0.1) + 
+                (scores.aiImpact * 0.2) + 
+                (scores.aiReadiness * 0.35) +
+                (scores.aiValue * 0.1) +
+                (scores.customer * 0.1)
+            );
+        }
+
+        function calculateAndShowResults() {
+            const score = calculateScore();
+            let riskLevel, riskClass, description;
+
+            if (score >= 75) {
+                riskLevel = "AI Ready";
+                riskClass = "risk-low";
+                description = "Your business is well-positioned for the AI transformation with strong foundations and readiness.";
+            } else if (score >= 50) {
+                riskLevel = "Moderate Risk";
+                riskClass = "risk-medium";
+                description = "Your business has some AI preparation but needs focused strategic development to stay competitive.";
+            } else {
+                riskLevel = "High Risk";
+                riskClass = "risk-high";
+                description = "Your business faces significant disruption risk and needs immediate AI strategy development.";
+            }
+
+            document.getElementById('assessment-form').style.display = 'none';
+            const resultsSection = document.getElementById('results-section');
+            resultsSection.className = 'results fade-in';
+            
+            resultsSection.innerHTML = `
+                <h2 style="font-size: 2rem; margin-bottom: 20px; color: #1e293b;">Your AI Strategy Assessment Results</h2>
+                
+                <div class="score-display">${score}</div>
+                <div style="font-size: 1.2rem; color: #64748b; margin-bottom: 10px;">Overall AI Readiness Score</div>
+                <div class="risk-level ${riskClass}">${riskLevel}</div>
+                <p style="font-size: 1.1rem; color: #374151; margin: 20px 0;">${description}</p>
+
+                <div class="profile-summary">
+                    <h3 style="margin-bottom: 15px; color: #1e293b;">Your Business Profile</h3>
+                    <div class="profile-item"><strong>Business Model:</strong> ${state.quadrant || 'Not specified'}</div>
+                    <div class="profile-item"><strong>Competitive Advantages:</strong> ${state.advantage.length ? state.advantage.join(', ') : 'None selected'}</div>
+                    <div class="profile-item"><strong>Biggest Cost:</strong> ${state.biggestCost || 'Not specified'}</div>
+                    <div class="profile-item"><strong>AI Leverage Opportunities:</strong> ${state.leverage.length ? state.leverage.join(', ') : 'None selected'}</div>
+                </div>
+
+                <button class="btn success" onclick="copyDetailedPrompt()">
+                    📋 Copy Detailed Analysis Prompt for AI Assistant
+                </button>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn" onclick="restartAssessment()" style="background: #6b7280;">
+                        ← Start Over
+                    </button>
+                </div>
+            `;
+        }
+
+        function copyDetailedPrompt() {
+            const score = calculateScore();
+            const aiReadiness = (1.0 + (state.generationalDisruption / 100) * 2.0).toFixed(1);
+            
+            // Helper function to interpret scores
+            function interpretScore(value, isReverse = false) {
+                if (isReverse) {
+                    if (value <= 25) return "very high";
+                    if (value <= 50) return "moderate-high";
+                    if (value <= 75) return "moderate-low";
+                    return "very low";
+                } else {
+                    if (value <= 25) return "very low";
+                    if (value <= 50) return "moderate-low";
+                    if (value <= 75) return "moderate-high";
+                    return "very high";
+                }
+            }
+
+            function interpretAIReadiness(value) {
+                if (value < 1.5) return "AI Nothing - no AI integration";
+                if (value < 2.5) return "AI Enhanced - some AI tools/automation";
+                return "AI Native - built with AI at the core";
+            }
+
+            const prompt = `I just completed a comprehensive AI Strategy Assessment for my business. Here are my detailed results with full context:
+
+OVERALL AI READINESS SCORE: ${score}/100
+
+DETAILED ASSESSMENT BREAKDOWN:
+
+1. **Change Adaptation Speed: ${state.changeSpeed}/100** 
+   This measures how quickly my business adapts to market changes, new technologies, and industry shifts.
+   My score indicates: ${interpretScore(state.changeSpeed)} ability to adapt to change
+   Scale: 0 = Very slow to change → 100 = Very fast to adapt
+
+2. **Business Model Maturity: ${state.businessType}/100**
+   This evaluates whether my business operates more like a traditional trade/service or a scalable business model.
+   My score indicates: ${interpretScore(state.businessType)} business model sophistication
+   Scale: 0 = Simple trade/service model → 100 = Complex scalable business model
+
+3. **AI Impact Perception: ${state.aiImpact}/100**
+   This reflects how I believe AI will affect my business - whether it's a threat or opportunity.
+   My score indicates: ${interpretScore(state.aiImpact)} expected impact from AI
+   Scale: 0 = Very negative AI impact → 100 = Very positive AI impact
+
+4. **Current AI Integration Level: ${aiReadiness}/3.0**
+   This measures my business's current relationship with AI technology.
+   My level: ${interpretAIReadiness(parseFloat(aiReadiness))}
+   Scale: 1.0 = AI Nothing → 2.0 = AI Enhanced → 3.0 = AI Native
+
+5. **AI Value Engine Impact: ${state.aiValueChange}/100**
+   This assesses whether AI fundamentally changes how my business creates value or just optimizes existing processes.
+   My score indicates: AI ${interpretScore(state.aiValueChange, true)} changes to core value creation
+   Scale: 0 = AI fundamentally changes value creation → 100 = AI doesn't change core value
+
+6. **Customer Interaction Level: ${state.customerFacing}/100**
+   This measures how directly my business interacts with end customers.
+   My score indicates: ${interpretScore(state.customerFacing)} customer interaction
+   Scale: 0 = B2B backend operations → 100 = Direct consumer-facing business
+
+BUSINESS MODEL & COMPETITIVE PROFILE:
+
+• **Business Model Type**: ${state.quadrant || 'Not specified'}
+  ${state.quadrant === 'Platform' ? '(Multi-sided marketplace connecting users/providers)' : ''}
+  ${state.quadrant === 'Tool' ? '(Software/service that helps others do their job better)' : ''}
+  ${state.quadrant === 'Trade' ? '(Direct service provision or physical goods)' : ''}
+  ${state.quadrant === 'Business' ? '(Complex value creation with multiple revenue streams)' : ''}
+
+• **Primary Competitive Advantages**: ${state.advantage.length ? state.advantage.join(', ') : 'None specified - this is a significant strategic gap'}
+
+• **Biggest Operational Cost**: ${state.biggestCost || 'Not specified'}
+  ${state.biggestCost === 'Staff salaries' ? '(Labor-intensive business model)' : ''}
+  ${state.biggestCost === 'Technology/Software' ? '(Tech-dependent operations)' : ''}
+  ${state.biggestCost === 'Marketing/Sales' ? '(Customer acquisition focused)' : ''}
+  ${state.biggestCost === 'Physical infrastructure' ? '(Asset-heavy business model)' : ''}
+
+• **AI Leverage Opportunities**: ${state.leverage.length ? state.leverage.join(', ') : 'None identified - missed optimization potential'}
+
+STRATEGIC CONTEXT:
+My business is ${score >= 75 ? 'well-positioned for AI transformation' : score >= 50 ? 'moderately prepared but needs focused AI strategy' : 'at high risk of AI disruption and needs immediate action'}. 
+
+The combination of my ${interpretScore(state.changeSpeed)} change adaptation speed and ${interpretAIReadiness(parseFloat(aiReadiness))} current AI integration suggests ${state.changeSpeed < 50 && parseFloat(aiReadiness) < 2.0 ? 'significant urgency in developing AI capabilities' : state.changeSpeed >= 75 && parseFloat(aiReadiness) >= 2.0 ? 'strong foundation for advanced AI implementation' : 'moderate readiness with specific areas needing attention'}.
+
+Based on this comprehensive assessment, please provide:
+
+1. **Strategic Analysis**: Given my specific score patterns, what are my biggest AI-related risks and opportunities? How do my change adaptation speed (${state.changeSpeed}/100) and current AI integration (${aiReadiness}/3.0) create specific strategic implications?
+
+2. **Prioritized Action Plan**: Considering my ${state.quadrant || 'unspecified'} business model and ${state.biggestCost || 'unknown'} as my biggest cost, what should be my top 3-5 priorities for the next 6 months?
+
+3. **AI Implementation Strategy**: Which specific AI tools, platforms, or approaches best match my business profile? How should my ${interpretScore(state.customerFacing)} customer interaction level influence my AI implementation?
+
+4. **Risk Mitigation**: Given that AI ${interpretScore(state.aiValueChange, true)} changes my core value creation, how do I protect what makes my business valuable while embracing transformation?
+
+5. **Investment Priorities**: With ${state.biggestCost || 'unspecified costs'} as my largest expense and potential to ${state.leverage.length ? state.leverage.join(' and ') : 'leverage AI in unidentified ways'}, where should I focus AI investments for maximum ROI?
+
+6. **Competitive Positioning**: How do I strengthen my competitive advantages (currently: ${state.advantage.length ? state.advantage.join(', ') : 'none clearly defined'}) in an AI-transformed market?
+
+Please provide specific, actionable recommendations that directly address my assessment scores and business context.`;
+
+            navigator.clipboard.writeText(prompt).then(() => {
+                alert('✅ Detailed analysis prompt copied to clipboard!\n\nYou can now paste this into ChatGPT, Claude, or any AI assistant for personalized strategic guidance.');
+            }).catch(() => {
+                // Fallback for browsers that don't support clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = prompt;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('✅ Prompt copied! Paste it into your preferred AI assistant.');
+            });
+        }
+
+        function restartAssessment() {
+            // Reset state
+            Object.keys(state).forEach(key => {
+                if (typeof state[key] === 'number') {
+                    state[key] = 50;
+                } else if (Array.isArray(state[key])) {
+                    state[key] = [];
+                } else {
+                    state[key] = '';
+                }
+            });
+            
+            document.getElementById('results-section').style.display = 'none';
+            document.getElementById('assessment-form').innerHTML = '';
+            document.getElementById('assessment-form').style.display = 'block';
+            renderQuestions();
+        }
+
+        // Initialize the app
+        renderQuestions();
+    </script>
+</body>
+</html>
