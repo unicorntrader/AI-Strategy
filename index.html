@@ -57,16 +57,10 @@
 </head>
 <body>
     <div class="container">
-     <div class="header">
-    <h1>AI Strategy Assessment</h1>
-    <p>Evaluate your business's AI readiness and get strategic recommendations</p>
-    <p style="margin-top: 10px; font-size: 0.95rem; color: #64748b;">
-        An initiative by 
-        <a href="https://philoinvestor.com" target="_blank" style="color: #3b82f6; text-decoration: none;">
-            Philoinvestor.com
-        </a>
-    </p>
-</div>
+        <div class="header">
+            <h1>AI Strategy Assessment</h1>
+            <p>Evaluate your business's AI readiness and get strategic recommendations</p>
+        </div>
 
         <div id="assessment-form">
             <!-- Questions will be inserted here -->
@@ -88,7 +82,11 @@
             quadrant: '',
             advantage: [],
             leverage: [],
-            biggestCost: ''
+            biggestCost: '',
+            sector: '',
+            specificChallenge: '',
+            companySize: '',
+            timeline: ''
         };
 
         const questions = [
@@ -165,10 +163,51 @@
                 container.appendChild(questionDiv);
             });
 
+            // Set initial sample text values (these will be cleared when user clicks)
+            state.sector = '';
+            state.specificChallenge = '';
+
             // Add submit button
             const submitDiv = document.createElement('div');
             submitDiv.className = 'question-card fade-in';
-            submitDiv.innerHTML = '<button class="btn" onclick="calculateAndShowResults()">Get My AI Strategy Results</button>';
+            submitDiv.innerHTML = `
+                <div class="question-title">What sector/industry are you in?</div>
+                <input type="text" id="sector" placeholder="Legacy bank being disrupted by neobanks" 
+                       oninput="updateText('sector', this.value)"
+                       style="width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 8px; background: white; font-size: 1rem; margin: 10px 0; font-family: inherit; color: #9ca3af;"
+                       onfocus="if(this.style.color === 'rgb(156, 163, 175)') { this.value = ''; this.style.color = '#374151'; }"
+                       onblur="if(this.value === '') { this.value = 'Legacy bank being disrupted by neobanks'; this.style.color = '#9ca3af'; }"
+                       value="Legacy bank being disrupted by neobanks">
+                
+                <div class="question-title" style="margin-top: 30px;">What is your biggest business challenge right now?</div>
+                <input type="text" id="specificChallenge" placeholder="Losing customers to digital-first competitors" 
+                       oninput="updateText('specificChallenge', this.value)"
+                       style="width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 8px; background: white; font-size: 1rem; margin: 10px 0; font-family: inherit; color: #9ca3af;"
+                       onfocus="if(this.style.color === 'rgb(156, 163, 175)') { this.value = ''; this.style.color = '#374151'; }"
+                       onblur="if(this.value === '') { this.value = 'Losing customers to digital-first competitors'; this.style.color = '#9ca3af'; }"
+                       value="Losing customers to digital-first competitors">
+
+                <div class="question-title" style="margin-top: 30px;">What is your company size?</div>
+                <div class="options-grid">
+                    <div class="option-item" onclick="selectOption('companySize', 'Startup (1-10 employees)')">Startup (1-10 employees)</div>
+                    <div class="option-item" onclick="selectOption('companySize', 'Small (11-50 employees)')">Small (11-50 employees)</div>
+                    <div class="option-item" onclick="selectOption('companySize', 'Medium (51-250 employees)')">Medium (51-250 employees)</div>
+                    <div class="option-item" onclick="selectOption('companySize', 'Large (251-1000 employees)')">Large (251-1000 employees)</div>
+                    <div class="option-item" onclick="selectOption('companySize', 'Enterprise (1000+ employees)')">Enterprise (1000+ employees)</div>
+                    <div class="option-item" onclick="selectOption('companySize', 'Just me (Solo)')">Just me (Solo)</div>
+                </div>
+
+                <div class="question-title" style="margin-top: 30px;">What is your AI strategy timeline?</div>
+                <div class="options-grid">
+                    <div class="option-item" onclick="selectOption('timeline', 'Urgent (next 3 months)')">Urgent (next 3 months)</div>
+                    <div class="option-item" onclick="selectOption('timeline', 'Short-term (3-6 months)')">Short-term (3-6 months)</div>
+                    <div class="option-item" onclick="selectOption('timeline', 'Medium-term (6-18 months)')">Medium-term (6-18 months)</div>
+                    <div class="option-item" onclick="selectOption('timeline', 'Long-term (18+ months)')">Long-term (18+ months)</div>
+                    <div class="option-item" onclick="selectOption('timeline', 'Just exploring options')">Just exploring options</div>
+                </div>
+                
+                <button class="btn" onclick="calculateAndShowResults()" style="margin-top: 20px;">Get My AI Strategy Results</button>
+            `;
             container.appendChild(submitDiv);
         }
 
@@ -250,6 +289,15 @@
             }
         }
 
+        function updateText(id, value) {
+            state[id] = value;
+        }
+
+        function fillExample(id, example) {
+            document.getElementById(id).value = example;
+            state[id] = example;
+        }
+
         function calculateScore() {
             const scores = {
                 change: state.changeSpeed,
@@ -288,6 +336,10 @@
                     <div class="profile-item"><strong>Competitive Advantages:</strong> ${state.advantage.length ? state.advantage.join(', ') : 'None selected'}</div>
                     <div class="profile-item"><strong>Biggest Cost:</strong> ${state.biggestCost || 'Not specified'}</div>
                     <div class="profile-item"><strong>AI Leverage Opportunities:</strong> ${state.leverage.length ? state.leverage.join(', ') : 'None selected'}</div>
+                    <div class="profile-item"><strong>Industry/Sector:</strong> ${state.sector || 'Not specified'}</div>
+                    <div class="profile-item"><strong>Main Challenge:</strong> ${state.specificChallenge || 'Not specified'}</div>
+                    <div class="profile-item"><strong>Company Size:</strong> ${state.companySize || 'Not specified'}</div>
+                    <div class="profile-item"><strong>Timeline:</strong> ${state.timeline || 'Not specified'}</div>
                     <div class="profile-item"><strong>Change Adaptation:</strong> ${state.changeSpeed <= 30 ? 'Slow to change' : state.changeSpeed <= 70 ? 'Moderate adaptation' : 'Fast to adapt'}</div>
                     <div class="profile-item"><strong>AI Integration:</strong> ${((1.0 + (state.generationalDisruption / 100) * 2.0) < 1.5) ? 'No AI integration' : ((1.0 + (state.generationalDisruption / 100) * 2.0) < 2.5) ? 'Some AI tools' : 'AI-native approach'}</div>
                 </div>
@@ -379,6 +431,14 @@ ${state.biggestCost === 'Marketing/Sales' ? '→ Customer acquisition focused' :
 ${state.biggestCost === 'Physical infrastructure' ? '→ Asset-heavy business model' : ''}
 
 **Identified AI Leverage Opportunities:** ${state.leverage.length ? state.leverage.join(', ') : 'None identified - significant untapped potential'}
+
+**Industry/Sector Context:** ${state.sector || 'Not specified'}
+
+**Primary Business Challenge:** ${state.specificChallenge || 'Not clearly defined'}
+
+**Company Size:** ${state.companySize || 'Not specified'}
+
+**AI Strategy Timeline:** ${state.timeline || 'Not specified'}
 
 STRATEGIC QUESTIONS I NEED HELP WITH:
 
